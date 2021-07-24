@@ -5,17 +5,23 @@ import android.content.Intent;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 
+import com.example.greenbook.adapter.ItemAdapter;
 import com.example.greenbook.databinding.ActivityMainBinding;
 import com.example.greenbook.model.Item;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -27,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore firebaseFirestore;
     Context context = this;
     ArrayList<Item> itemArrayList;
+    ItemAdapter itemAdapter;
 
 
     @Override
@@ -41,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
         getData();
 
         itemArrayList = new ArrayList<>();
+
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        itemAdapter = new ItemAdapter(itemArrayList);
+        binding.recyclerView.setAdapter(itemAdapter);
     }
 
     public void fabButtonClicked(View view){
@@ -50,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void getData(){
 
-        firebaseFirestore.collection("Items").addSnapshotListener(new EventListener<QuerySnapshot>() {
+        firebaseFirestore.collection("Items").orderBy("date", Query.Direction.DESCENDING).addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
 
@@ -73,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
                         Item item = new Item(title,comment,downloadurl,date);
                         itemArrayList.add(item);
                     }
+
+                    itemAdapter.notifyDataSetChanged();
                 }
 
             }

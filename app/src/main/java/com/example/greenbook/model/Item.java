@@ -4,10 +4,10 @@ public class Item {
 
 
 
-    String title;
-    String comment;
-    String downloadUrl;
-    String date;
+    public String title;
+    public String comment;
+    public String downloadUrl;
+    public String date;
 
     public Item(String title, String comment, String downloadUrl, String date) {
         this.title = title;
