@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "812002282626",
+    "project_id": "greenbook-72c71",
+    "storage_bucket": "greenbook-72c71.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812002282626:android:7a068b210032207debf89b",
+        "android_client_info": {
+          "package_name": "com.example.greenbook"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "812002282626-s26l8ae1qela0vmtqr3ks8j9rldc054q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByBXewaBLC3B2HSmc-W0ax9Yx8e4b5vTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "812002282626-s26l8ae1qela0vmtqr3ks8j9rldc054q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
