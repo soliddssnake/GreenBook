@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void fabButtonClicked(View view){
         Intent intent = new Intent(context , addAct.class);
+        intent.putExtra("info","new");
         startActivity(intent);
     }
 

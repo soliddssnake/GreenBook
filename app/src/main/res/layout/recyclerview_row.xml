@@ -16,6 +16,7 @@
         android:elevation="1dp"
         android:text="TitleView"
         android:textSize="25sp"
+        android:textColor="@color/purple_500"
         app:layout_constraintLeft_toLeftOf="@+id/recyclerViewRowImageView"
         app:layout_constraintTop_toTopOf="@+id/recyclerViewRowImageView" />
 
@@ -28,6 +29,7 @@
         android:elevation="1dp"
         android:text="DateView"
         android:textSize="25sp"
+        android:textColor="@color/purple_500"
         app:layout_constraintBottom_toBottomOf="@+id/recyclerViewRowImageView"
         app:layout_constraintRight_toRightOf="@+id/recyclerViewRowImageView" />
 

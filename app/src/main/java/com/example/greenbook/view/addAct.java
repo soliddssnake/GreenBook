@@ -8,8 +8,10 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
 import android.view.View;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -17,24 +19,34 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.greenbook.adapter.ItemAdapter;
 import com.example.greenbook.databinding.ActAddBinding;
+import com.example.greenbook.model.Item;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 public class addAct extends AppCompatActivity {
@@ -49,7 +61,8 @@ public class addAct extends AppCompatActivity {
     ActivityResultLauncher<Intent> activityResultLauncher;
     ActivityResultLauncher<String> permissionLauncher;
     DatePickerDialog.OnDateSetListener date;
-
+    ArrayList<Item> itemArrayList;
+    ItemAdapter itemAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +75,59 @@ public class addAct extends AppCompatActivity {
         firebaseStorage = FirebaseStorage.getInstance();
         firebaseFirestore = FirebaseFirestore.getInstance();
         storageReference = firebaseStorage.getReference();
-
+        itemAdapter = new ItemAdapter(itemArrayList);
         registerLauncher();
+
+        Intent intent = getIntent();
+        String info = intent.getStringExtra("info");
+
+        if(info.equals("detail")){
+
+            String itemId = intent.getStringExtra("itemId");
+            try {
+
+                firebaseFirestore.collection("Items").whereEqualTo("downloadurl",itemId).addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if(error != null){
+                            Toast.makeText(context,error.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                        }
+
+                        if(value != null){
+
+                            for(DocumentSnapshot snapshot : value.getDocuments()){
+
+                                Map<String, Object> data = snapshot.getData();
+
+                                //casting
+                                String title = (String) data.get("title");
+                                String date = (String) data.get("date");
+                                String downloadurl = (String) data.get("downloadurl");
+                                String comment = (String) data.get("comment");
+
+                                binding.editTextDate.setText(date);
+                                binding.editTextTextMultiLine.setText(comment);
+                                binding.editTextTextPersonName.setText(title);
+                                binding.addBtn.setVisibility(View.INVISIBLE);
+                                binding.cancelBtn.setVisibility(View.INVISIBLE);
+                                binding.editTextTextPersonName.setEnabled(false);
+                                binding.imageView.setClickable(false);
+                                binding.editTextTextMultiLine.setEnabled(false);
+                                binding.editTextDate.setEnabled(false);
+                                Picasso.get().load(downloadurl).into(binding.imageView);
+
+                            }
+
+
+                        }
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }else{}
 
 
 
@@ -83,7 +147,7 @@ public class addAct extends AppCompatActivity {
 
     public void addButton(View view){
 
-        if(imageData != null){
+        if(imageData != null && textIsEmpty(binding.editTextDate) && textIsEmpty(binding.editTextTextMultiLine) && textIsEmpty(binding.editTextTextPersonName)){
 
             UUID uuid = UUID.randomUUID();
             String imageName = "Images/" + uuid + ".jpg";
@@ -136,6 +200,8 @@ public class addAct extends AppCompatActivity {
                 }
             });
 
+        }else {
+            Toast.makeText(context,"Please fill all blanks!!",Toast.LENGTH_LONG).show();
         }
 
     }
@@ -219,5 +285,12 @@ public class addAct extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    private boolean textIsEmpty(EditText etText) {
+        if (etText.getText().toString().trim().length() > 0)
+            return true;
+
+        return false;
     }
 }
