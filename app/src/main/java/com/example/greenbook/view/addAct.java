@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Editable;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -24,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.greenbook.R;
 import com.example.greenbook.adapter.ItemAdapter;
 import com.example.greenbook.databinding.ActAddBinding;
 import com.example.greenbook.model.Item;
@@ -63,6 +63,9 @@ public class addAct extends AppCompatActivity {
     DatePickerDialog.OnDateSetListener date;
     ArrayList<Item> itemArrayList;
     ItemAdapter itemAdapter;
+    Intent intent;
+    String info;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +81,8 @@ public class addAct extends AppCompatActivity {
         itemAdapter = new ItemAdapter(itemArrayList);
         registerLauncher();
 
-        Intent intent = getIntent();
-        String info = intent.getStringExtra("info");
+        intent = getIntent();
+        info = intent.getStringExtra("info");
 
         if(info.equals("detail")){
 
@@ -110,6 +113,7 @@ public class addAct extends AppCompatActivity {
                                 binding.editTextTextPersonName.setText(title);
                                 binding.addBtn.setVisibility(View.INVISIBLE);
                                 binding.cancelBtn.setVisibility(View.INVISIBLE);
+                                binding.saveBtn.setVisibility(View.INVISIBLE);
                                 binding.editTextTextPersonName.setEnabled(false);
                                 binding.imageView.setClickable(false);
                                 binding.editTextTextMultiLine.setEnabled(false);
@@ -127,7 +131,13 @@ public class addAct extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-        }else{}
+        }else {
+            binding.editActionBtn.setVisibility(View.INVISIBLE);
+            binding.deleteActionBtn.setVisibility(View.INVISIBLE);
+            binding.saveBtn.setVisibility(View.INVISIBLE);
+
+        }
+
 
 
 
@@ -143,6 +153,113 @@ public class addAct extends AppCompatActivity {
         };
 
 
+    }
+
+    public void editButtonClicked(View view){
+        binding.cancelBtn.setVisibility(View.VISIBLE);
+        binding.saveBtn.setVisibility(View.VISIBLE);
+        binding.editTextTextPersonName.setEnabled(true);
+        binding.imageView.setClickable(true);
+        binding.editTextTextMultiLine.setEnabled(true);
+        binding.editTextDate.setEnabled(true);
+        binding.deleteActionBtn.setVisibility(View.INVISIBLE);
+        binding.editActionBtn.setVisibility(View.INVISIBLE);
+        binding.imageView.setImageDrawable(getDrawable(R.drawable.selectimage));
+    }
+
+    public void deleteButtonClicked(View view){
+        Snackbar.make(view,"Are you sure that delete this story?",Snackbar.LENGTH_INDEFINITE).setAction("Delete", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                firebaseFirestore.collection("Items").whereEqualTo("downloadurl",intent.getStringExtra("itemId")).addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if(error != null){
+                            Toast.makeText(context,error.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                        }
+
+                        if(value != null){
+
+                            for(DocumentSnapshot snapshot : value.getDocuments()){
+
+                                firebaseFirestore.collection("Items").document(snapshot.getId()).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        Toast.makeText(context,"Deleted!",Toast.LENGTH_LONG).show();
+                                        itemAdapter.notifyDataSetChanged();
+                                        Intent intent = new Intent(context,MainActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(context,e.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                                    }
+                                });
+
+                            }
+
+
+                        }
+                    }
+                });
+            }
+        }).show();
+    }
+
+    public void saveButtonClicked(View view){
+
+        if(imageData != null && textIsEmpty(binding.editTextDate) && textIsEmpty(binding.editTextTextMultiLine) && textIsEmpty(binding.editTextTextPersonName)){
+
+            firebaseFirestore.collection("Items").whereEqualTo("downloadurl",intent.getStringExtra("itemId")).addSnapshotListener(new EventListener<QuerySnapshot>() {
+                @Override
+                public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                    if(error != null){
+                        Toast.makeText(context,error.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                    }
+
+                    if(value != null){
+
+                        String downloadUrl = imageData.toString();
+                        String comment = binding.editTextTextMultiLine.getText().toString();
+                        String title = binding.editTextTextPersonName.getText().toString();
+                        String date = binding.editTextDate.getText().toString();
+
+                        HashMap<String, Object> postData = new HashMap<>();
+                        postData.put("downloadurl",downloadUrl);
+                        postData.put("comment",comment);
+                        postData.put("title",title);
+                        postData.put("date",date);
+
+                        for(DocumentSnapshot snapshot : value.getDocuments()){
+
+                            firebaseFirestore.collection("Items").document(snapshot.getId()).update(postData).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    Toast.makeText(context,"Saved!",Toast.LENGTH_LONG).show();
+                                    itemAdapter.notifyDataSetChanged();
+                                    Intent intent = new Intent(context,MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(context,e.getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                                }
+                            });
+
+                        }
+
+
+                    }
+                }
+            });
+
+        }else{
+            Toast.makeText(context,"Please fill all blanks!!",Toast.LENGTH_LONG).show();
+        }
     }
 
     public void addButton(View view){
@@ -179,6 +296,7 @@ public class addAct extends AppCompatActivity {
                                     Intent intent = new Intent(context,MainActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     startActivity(intent);
+                                    finish();
 
                                 }
                             }).addOnFailureListener(new OnFailureListener() {
