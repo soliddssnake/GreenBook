@@ -269,6 +269,10 @@ public class addAct extends AppCompatActivity {
             UUID uuid = UUID.randomUUID();
             String imageName = "Images/" + uuid + ".jpg";
 
+            binding.addBtn.setEnabled(false);
+
+            Toast.makeText(context,"Please wait its uploading!",Toast.LENGTH_LONG).show();
+
             storageReference.child(imageName).putFile(imageData).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -292,7 +296,6 @@ public class addAct extends AppCompatActivity {
                             firebaseFirestore.collection("Items").add(postData).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                 @Override
                                 public void onSuccess(DocumentReference documentReference) {
-
                                     Intent intent = new Intent(context,MainActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     startActivity(intent);
